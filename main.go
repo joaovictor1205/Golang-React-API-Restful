@@ -82,5 +82,19 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func removeBook(w http.ResponseWriter, r *http.Request) {
-	log.Println("Remove an book")
+	params := mux.Vars(r)
+
+	stringID, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i, item := range books {
+		if item.ID == stringID {
+			books = append(books[:i], books[i+1:]...)
+		}
+	}
+
+	json.NewEncoder(w).Encode(books)
 }
