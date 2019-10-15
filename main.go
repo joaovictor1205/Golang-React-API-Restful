@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
+	_ "database/sql"
+	_ "github.com/lib/pq"
+	_ "github.com/subosito/gotenv"
+
 	"github.com/gorilla/mux"
 )
 
