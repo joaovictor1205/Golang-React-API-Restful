@@ -1,14 +1,15 @@
 package main
 
 import (
-	"log"
-	"os"
-	"net/http"
 	"database/sql"
+	"encoding/json"
+	"log"
+	"net/http"
+	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/lib/pq"
 	"github.com/subosito/gotenv"
-	"github.com/gorilla/mux"
 )
 
 type Book struct {
@@ -21,12 +22,12 @@ type Book struct {
 var books []Book
 var db *sql.DB
 
-func init(){
+func init() {
 	gotenv.Load()
 }
 
-func logFatal(err error){
-	if err != nil{
+func logFatal(err error) {
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -42,8 +43,6 @@ func main() {
 	err = db.Ping()
 	logFatal(err)
 
-	log.Println(pgUrl)
-
 	router := mux.NewRouter()
 
 	router.HandleFunc("/books", getBooks).Methods("GET")
@@ -57,6 +56,23 @@ func main() {
 }
 
 func getBooks(w http.ResponseWriter, r *http.Request) {
+
+	var book Book
+	books = []Book{}
+
+	rows, err := db.Query("SELECT * FROM books")
+	logFatal(err)
+
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&book.ID, &book.Title, &book.Author, &book.Year)
+		logFatal(err)
+
+		books = append(books, book)
+	}
+
+	json.NewEncoder(w).Encode(books)
 }
 
 func getBook(w http.ResponseWriter, r *http.Request) {
