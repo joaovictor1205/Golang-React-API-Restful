@@ -1,24 +1,32 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
 
 type Book struct {
-	ID     string `json:"id"`
+	ID     int    `json:"id"`
 	Title  string `json:"title"`
 	Author string `json:"author"`
 	Year   string `json:"year"`
 }
 
-var book []Book
+var books []Book
 
 func main() {
 
 	router := mux.NewRouter()
+
+	books = append(books, Book{ID: 1, Title: "Golang Pointers", Author: "Mr. Pointers", Year: "2010"},
+		Book{ID: 2, Title: "Go Routines", Author: "Mr. Routines", Year: "2011"},
+		Book{ID: 3, Title: "Golang Routers", Author: "Mr. Routers", Year: "2012"},
+		Book{ID: 4, Title: "Golang Concurrency", Author: "Mr. Concurrency", Year: "2013"},
+		Book{ID: 5, Title: "Golang Paterns", Author: "Mr. Paterns", Year: "2014"})
 
 	router.HandleFunc("/books", getBooks).Methods("GET")
 	router.HandleFunc("/books/{id}", getBook).Methods("GET")
@@ -31,11 +39,23 @@ func main() {
 }
 
 func getBooks(w http.ResponseWriter, r *http.Request) {
-	log.Println("Get all books")
+	json.NewEncoder(w).Encode(books)
 }
 
 func getBook(w http.ResponseWriter, r *http.Request) {
-	log.Println("Get an book by id")
+	params := mux.Vars(r)
+
+	stringID, err := strconv.Atoi(params["id"])
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, book := range books {
+		if book.ID == stringID {
+			json.NewEncoder(w).Encode(&book)
+		}
+	}
 }
 
 func addBook(w http.ResponseWriter, r *http.Request) {
